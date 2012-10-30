@@ -1,3 +1,4 @@
 rack -v 1.4.1
 cutest -v 1.2.0
 haml -v 3.1.7
+cuba -v 3.1.0

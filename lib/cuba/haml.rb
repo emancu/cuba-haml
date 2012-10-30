@@ -37,10 +37,10 @@ class Cuba
       ]
     end
 
-    def layout_path(layout = nil)
+    def layout_path(layout = settings[:haml][:layout])
       "%s/%s.haml" % [
         settings[:haml][:layout_path],
-        layout || settings[:haml][:layout]
+        layout
       ]
     end
 

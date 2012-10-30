@@ -26,7 +26,13 @@ scope do
       end
 
       on "home2" do
-        haml("home", 'layout-yield.haml', name: "Agent Smith", title: "Home")
+        view("home", 'layout2', name: "Agent Smith", title: "Home")
+      end
+
+      on "home3" do
+        res.write render(layout_path('layout-yield')) {
+          render(template_path("home"), name: "Agent Smith", title: "Home")
+        }
       end
 
       on "about" do
@@ -50,27 +56,14 @@ scope do
   test "view" do
     _, _, body = Cuba.call({ "PATH_INFO" => "/home2", "SCRIPT_NAME" => "/" })
 
-    assert_response body, ["Header\n<h1>Home</h1>\n<p>Hello Agent Smith</p>\nFooter"]
-  end
-end
-
-test "caching behavior" do
-  Thread.current[:_cache] = nil
-
-  Cuba.plugin Cuba::Haml
-  Cuba.settings[:haml][:views] = "./test/views"
-
-  Cuba.define do
-    on "foo/:i" do |i|
-      partial("test", title: i)
-    end
+    assert_response body, ["Header\n<h1>Home</h1>\n<p>Hello Agent Smith</p>\nFooter\n"]
   end
 
-  10.times do |i|
-    _, _, resp = Cuba.call({ "PATH_INFO" => "/foo/#{i}", "SCRIPT_NAME" => "" })
-  end
+  test "render with blocks" do
+    _, _, body = Cuba.call({ "PATH_INFO" => "/home3", "SCRIPT_NAME" => "/" })
 
-  assert_equal 1, Thread.current[:_cache].instance_variable_get(:@cache).size
+    assert_response body, ["Header\n<h1>Home</h1>\n<p>Hello Agent Smith</p>\nFooter\n"]
+  end
 end
 
 scope do

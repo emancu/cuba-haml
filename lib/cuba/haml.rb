@@ -1,5 +1,4 @@
-require 'tilt'
-require 'tilt/haml'
+require 'haml'
 
 class Cuba
   module Haml
@@ -21,9 +20,8 @@ class Cuba
     end
 
     # Use specific layout file nested into :layout_path
-    def view(template, layout_file, options = {})
-      layout = File.expand_path(layout_file, settings[:haml][:layout_path])
-      res.write partial(layout,
+    def view(template, layout_file, locals = {})
+      res.write render(layout_path(layout_file),
                         { content: partial(template, locals) }.merge(locals))
     end
 
@@ -32,13 +30,6 @@ class Cuba
       render(template_path(template), locals, settings[:haml][:options])
     end
 
-    # @private Used internally by #render to cache the Tilt templates.
-    def _cache
-      Thread.current[:_cache] ||= Tilt::Cache.new
-    end
-
-    private :_cache
-
     def template_path(template)
       "%s/%s.haml" % [
         settings[:haml][:views],
@@ -46,10 +37,10 @@ class Cuba
       ]
     end
 
-    def layout_path
+    def layout_path(layout = nil)
       "%s/%s.haml" % [
         settings[:haml][:layout_path],
-        settings[:haml][:layout]
+        layout || settings[:haml][:layout]
       ]
     end
 
@@ -70,9 +61,9 @@ class Cuba
     #   render("layout.haml") { render("home.haml") }
     #
     def render(template, locals = {}, options = {}, &block)
-      _cache.fetch(template) {
-        Tilt.new(template, 1, options.merge(outvar: '@_output'))
-      }.render(self, locals, &block)
+      template = File.read(template)
+      ::Haml::Engine.new(template, options.merge(outvar: '@_output'))
+                    .render(self, locals, &block)
     end
   end
 end
